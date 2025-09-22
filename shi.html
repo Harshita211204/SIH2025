@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaturanga - The Four-Player Ancient Chess</title>
+    <!-- The following <style> block contains all the CSS needed for the game's appearance. -->
+    <style>
+        :root {
+            /* Color Palette & Sizing Variables */
+            --board-size: clamp(320px, 90vmin, 700px); /* Responsive board size */
+            --square-size: calc(var(--board-size) / 8);
+            --red-color: #8a1515;
+            --yellow-color: #e8af28;
+            --black-color: #0e0d0d;
+            --white-color: #ebeef0;
+            --dark-square:#5b3e26; /* Teal */
+            --light-square: #f5ddb7; /* Sky Blue */
+            --highlight-color: rgba(255, 255, 0, 0.6); /* Yellow for valid moves */
+            --selected-color: rgba(128, 88, 88, 0.662); /* Green for selected piece */
+            --background-color: #1E1E1E;
+            --panel-color: #212124;
+            --text-color: #ecf0f1;
+            --font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+        }
+
+        /* --- Basic Page Setup --- */
+        body {
+            font-family: var(--font-family);
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #1B263B ,  #1B263B  );          
+            color: var(--text-color);
+            gap: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* --- Main Game Containers --- */
+        #game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        #game-board {
+            width: var(--board-size);
+            height: var(--board-size);
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            border: 8px solid #4a4a4a;
+            border-radius: 8px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.6), inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        /* --- Board Squares and Pieces --- */
+        .square {
+            width: var(--square-size);
+            height: var(--square-size);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: calc(var(--square-size) * 0.7);
+            position: relative;
+            transition: background-color 0.2s;
+        }
+
+        .square.light { background-color: var(--light-square); }
+        .square.dark { background-color: var(--dark-square); }
+
+        .piece {
+            cursor: pointer;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            transition: transform 0.15s ease-in-out;
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10+ */
+            user-select: none; /* Standard */
+        }
+        .piece:hover {
+            transform: scale(1.15);
+        }
+
+        /* Player Colors */
+        .piece.red { color: var(--red-color); }
+        .piece.yellow { color: var(--yellow-color); }
+        .piece.black { color: var(--black-color); }
+        .piece.white { color: var(--white-color); }
+
+        /* --- UI Indicators for Selection and Moves --- */
+        .valid-move-indicator {
+            width: 35%;
+            height: 35%;
+            background-color: var(--highlight-color);
+            border-radius: 50%;
+            pointer-events: none; /* Allows clicks to pass through */
+            box-shadow: 0 0 10px var(--highlight-color);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+        
+        .selected {
+            background-color: var(--selected-color) !important;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        /* --- Right-Side Information Panel --- */
+        #info-panel {
+            width: 320px;
+            height: var(--board-size);
+            background-color: var(--panel-color);
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            border: 3px solid #4a4a4a;
+        }
+        
+        #info-panel h2, #info-panel h3 {
+            text-align: center;
+            margin-top: 0;
+            border-bottom: 2px solid var(--light-square);
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .info-section {
+            background-color: var(--background-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        #turn-indicator {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .player-turn-box {
+            padding: 10px 15px;
+            border-radius: 5px;
+            color: #fff;
+            text-shadow: 1px 1px 3px #000;
+            transition: all 0.4s ease;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        /* --- Dice Roller Section --- */
+        #dice-roller { text-align: center; }
+        
+        .action-button {
+            width: 100%;
+            padding: 15px 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 0 #371f1fa8;
+            text-transform: uppercase;
+        }
+        
+        #roll-button { background-color: #572f2fa8; }
+        #roll-button:hover:not(:disabled) { background-color: #916161a8; transform: translateY(-2px); box-shadow: 0 6px 0 #4a2b2ba8; }
+        #roll-button:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #5c3b3ba8; }
+        #roll-button:disabled { background-color: #7f8c8d; cursor: not-allowed; box-shadow: 0 4px 0 #65737e; }
+
+        #dice-result {
+            font-size: 1.5em;
+            margin-top: 15px;
+            min-height: 45px;
+            font-weight: bold;
+            color: white;
+            transition: opacity 0.3s;
+        }
+        
+        /* --- Score Board & Game Log --- */
+        #score-board .team {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        #score-board .team-red-black { background-color: rgba(192, 57, 43, 0.7); }
+        #score-board .team-yellow-white { background-color: rgba(243, 156, 18, 0.7); }
+
+        #game-log-container {
+            flex-grow: 1; display: flex; flex-direction: column;
+        }
+        #game-log {
+            flex-grow: 1;
+            background-color: var(--background-color);
+            overflow-y: auto;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            border: 1px solid #7f8c8d;
+        }
+        #game-log p {
+            margin: 0 0 5px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed #555;
+        }
+        #game-log p:last-child { border-bottom: none; }
+
+        /* --- New Game Button --- */
+        #new-game-button {
+            background-color:  rgba(243, 156, 18, 0.7);
+            box-shadow: 0 4px 0 rgba(136, 85, 3, 0.7);
+            margin-top: auto;
+        }
+        #new-game-button:hover { background-color: rgba(240, 172, 63, 0.7); transform: translateY(-2px); box-shadow: 0 6px 0 rgba(125, 80, 6, 0.7); }
+        #new-game-button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(125, 83, 14, 0.7); }
+        
+        /* --- Modal for Game Over --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: var(--panel-color);
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: zoomIn 0.5s;
+        }
+        .modal-content h2 { font-size: 2.5em; margin-bottom: 20px; }
+        @keyframes zoomIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+    </style>
+</head>
+<body>
+    <a href="python shi.py"></a>
+    <a href="python backend.py"></a>
+
+    <!-- This is the main container for the game board -->
+    <div id="game-area">
+        <div id="game-board"></div>
+    </div>
+
+    <!-- This is the side panel for game information and controls -->
+    <div id="info-panel">
+        <div>
+            <h2>Chaturanga</h2>
+            <div id="turn-indicator" class="info-section">
+                Current Turn:<span id="current-player-box" class="player-turn-box"></span>
+            </div>
+        </div>
+
+        <div id="dice-roller" class="info-section">
+            <button id="roll-button" class="action-button">Roll Dice</button>
+            <div id="dice-result">Roll to start your turn.</div>
+        </div>
+        
+        <div id="score-board" class="info-section">
+            <h3>Scores</h3>
+            <div class="team team-red-black">
+                <span>Team 1 (Red & Black):</span>
+                <span id="score-red-black">0</span>
+            </div>
+            <div class="team team-yellow-white">
+                <span>Team 2 (Yellow & White):</span>
+                <span id="score-yellow-white">0</span>
+            </div>
+        </div>
+        
+        <div class="info-section" id="game-log-container">
+            <h3>Game Log</h3>
+            <div id="game-log">
+                <p>Welcome to 4-Player Chaturanga!</p>
+            </div>
+        </div>
+        
+        <button id="new-game-button" class="action-button">New Game</button>
+    </div>
+    
+    <!-- This is a modal dialog for showing the game over message -->
+    <div id="game-over-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="winner-message"></h2>
+            <p>Press "New Game" to play again.</p>
+        </div>
+    </div>
+
+    <!-- The <script> block contains the entire game logic in JavaScript. -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // =========================================================================
+            // --- SECTION 1: CONFIGURATION & CONSTANTS ---
+            // =========================================================================
+
+            // Core game settings
+            const BOARD_SIZE = 8;
+
+            // Player definitions, including their color and team alliance
+            const PLAYERS = [
+                { id: 'red', name: 'Red', color: 'var(--red-color)', alliance: 1 },
+                { id: 'yellow', name: 'Yellow', color: 'var(--yellow-color)', alliance: 2 },
+                { id: 'black', name: 'Black', color: 'var(--black-color)', alliance: 1 },
+                { id: 'white', name: 'White', color: 'var(--white-color)', alliance: 2 }
+            ];
+
+            // Piece definitions, including their name and Unicode symbol for display
+            const PIECE_TYPES = {
+                PAWN: { name: 'Pawn', symbol: '♙' },
+                BOAT: { name: 'Boat', symbol: '♝' }, // Using Bishop for visual representation
+                HORSE: { name: 'Horse', symbol: '♞' },
+                ELEPHANT: { name: 'Elephant', symbol: '♜' }, // Using Rook for visual representation
+                KING: { name: 'King', symbol: '♚' }
+            };
+
+            // Points awarded for capturing each piece type
+            const PIECE_VALUES = { 'Pawn': 1, 'Boat': 5, 'Horse': 5, 'Elephant': 5, 'King': 5 };
+
+            // Mapping dice roll results to which piece type can be moved
+            const DICE_MAP = {
+                2: PIECE_TYPES.BOAT.name,
+                3: PIECE_TYPES.HORSE.name,
+                4: PIECE_TYPES.ELEPHANT.name,
+                5: PIECE_TYPES.KING.name // A roll of 5 can also move a Pawn
+            };
+
+            // The initial setup of all pieces on the board in their starting positions
+            const INITIAL_BOARD_STATE = [
+                // Red Player (Top-Left)
+                { r: 0, c: 0, type: PIECE_TYPES.KING.name, player: 'red' }, { r: 0, c: 1, type: PIECE_TYPES.ELEPHANT.name, player: 'red' }, { r: 0, c: 2, type: PIECE_TYPES.HORSE.name, player: 'red' }, { r: 0, c: 3, type: PIECE_TYPES.BOAT.name, player: 'red' },
+                { r: 1, c: 0, type: PIECE_TYPES.PAWN.name, player: 'red' }, { r: 1, c: 1, type: PIECE_TYPES.PAWN.name, player: 'red' }, { r: 1, c: 2, type: PIECE_TYPES.PAWN.name, player: 'red' }, { r: 1, c: 3, type: PIECE_TYPES.PAWN.name, player: 'red' },
+                // Yellow Player (Top-Right)
+                { r: 0, c: 7, type: PIECE_TYPES.KING.name, player: 'yellow' }, { r: 1, c: 7, type: PIECE_TYPES.ELEPHANT.name, player: 'yellow' }, { r: 2, c: 7, type: PIECE_TYPES.HORSE.name, player: 'yellow' }, { r: 3, c: 7, type: PIECE_TYPES.BOAT.name, player: 'yellow' },
+                { r: 0, c: 6, type: PIECE_TYPES.PAWN.name, player: 'yellow' }, { r: 1, c: 6, type: PIECE_TYPES.PAWN.name, player: 'yellow' }, { r: 2, c: 6, type: PIECE_TYPES.PAWN.name, player: 'yellow' }, { r: 3, c: 6, type: PIECE_TYPES.PAWN.name, player: 'yellow' },
+                // Black Player (Bottom-Right)
+                { r: 7, c: 7, type: PIECE_TYPES.KING.name, player: 'black' }, { r: 7, c: 6, type: PIECE_TYPES.ELEPHANT.name, player: 'black' }, { r: 7, c: 5, type: PIECE_TYPES.HORSE.name, player: 'black' }, { r: 7, c: 4, type: PIECE_TYPES.BOAT.name, player: 'black' },
+                { r: 6, c: 7, type: PIECE_TYPES.PAWN.name, player: 'black' }, { r: 6, c: 6, type: PIECE_TYPES.PAWN.name, player: 'black' }, { r: 6, c: 5, type: PIECE_TYPES.PAWN.name, player: 'black' }, { r: 6, c: 4, type: PIECE_TYPES.PAWN.name, player: 'black' },
+                // White Player (Bottom-Left)
+                { r: 7, c: 0, type: PIECE_TYPES.KING.name, player: 'white' }, { r: 6, c: 0, type: PIECE_TYPES.ELEPHANT.name, player: 'white' }, { r: 5, c: 0, type: PIECE_TYPES.HORSE.name, player: 'white' }, { r: 4, c: 0, type: PIECE_TYPES.BOAT.name, player: 'white' },
+                { r: 7, c: 1, type: PIECE_TYPES.PAWN.name, player: 'white' }, { r: 6, c: 1, type: PIECE_TYPES.PAWN.name, player: 'white' }, { r: 5, c: 1, type: PIECE_TYPES.PAWN.name, player: 'white' }, { r: 4, c: 1, type: PIECE_TYPES.PAWN.name, player: 'white' },
+            ];
+
+            // =========================================================================
+            // --- SECTION 2: GAME STATE VARIABLES ---
+            // =========================================================================
+
+            let board = []; // 2D array representing the game board
+            let currentPlayerIndex = 0; // Index for the PLAYERS array
+            let selectedPiece = null; // Object storing info about the currently selected piece
+            let lastDiceRoll = null; // The result of the last dice roll
+            let validMoves = []; // An array of {r, c} objects for the selected piece's valid moves
+            let scores = { 1: 0, 2: 0 }; // Scores for alliance 1 and 2
+            let isGameOver = false; // Flag to check if the game has ended
+
+            // =========================================================================
+            // --- SECTION 3: DOM ELEMENT REFERENCES ---
+            // =========================================================================
+
+            const boardEl = document.getElementById('game-board');
+            const currentPlayerBoxEl = document.getElementById('current-player-box');
+            const rollButton = document.getElementById('roll-button');
+            const diceResultEl = document.getElementById('dice-result');
+            const scoreRedBlackEl = document.getElementById('score-red-black');
+            const scoreYellowWhiteEl = document.getElementById('score-yellow-white');
+            const gameLogEl = document.getElementById('game-log');
+            const newGameButton = document.getElementById('new-game-button');
+            const gameOverModal = document.getElementById('game-over-modal');
+            const winnerMessageEl = document.getElementById('winner-message');
+
+            // =========================================================================
+            // --- SECTION 4: INITIALIZATION & GAME SETUP ---
+            // =========================================================================
+
+            /**
+             * Initializes the entire game, setting up the board, pieces, and UI.
+             */
+            function init() {
+                // Set up the internal data structure for the board
+                createBoardModel();
+                // Create the visual representation of the board in HTML
+                createBoardView();
+                // Place the pieces on the board according to the initial state
+                setupPieces();
+                // Draw the pieces on the visual board
+                renderBoard();
+                // Update all UI elements like score and current player
+                updateUI();
+            }
+
+            /**
+             * Resets the game to its initial state.
+             */
+            function resetGame() {
+                board = [];
+                currentPlayerIndex = 0;
+                selectedPiece = null;
+                lastDiceRoll = null;
+                validMoves = [];
+                scores = { 1: 0, 2: 0 };
+                isGameOver = false;
+
+                gameOverModal.style.display = 'none';
+                gameLogEl.innerHTML = '<p>New Game Started!</p>';
+                diceResultEl.textContent = 'Roll to start your turn.';
+
+                init(); // Re-initialize the game
+            }
+
+            // Create an empty 8x8 array for our board state
+            function createBoardModel() {
+                board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+            }
+
+            // Dynamically create the 64 `div` elements for the board squares
+            function createBoardView() {
+                boardEl.innerHTML = ''; // Clear any existing board
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        const square = document.createElement('div');
+                        square.classList.add('square');
+                        square.classList.add((r + c) % 2 === 0 ? 'light' : 'dark');
+                        square.dataset.r = r;
+                        square.dataset.c = c;
+                        boardEl.appendChild(square);
+                    }
+                }
+            }
+            
+            // Populate the board model with the starting pieces
+            function setupPieces() {
+                INITIAL_BOARD_STATE.forEach(p => {
+                    board[p.r][p.c] = { type: p.type, player: p.player };
+                });
+            }
+
+            // =========================================================================
+            // --- SECTION 5: RENDERING & UI UPDATES ---
+            // =========================================================================
+
+            /**
+             * Redraws the entire board based on the current `board` state array.
+             * This function is called after every move or selection change.
+             */
+            function renderBoard() {
+                const squares = document.querySelectorAll('.square');
+                squares.forEach(square => {
+                    square.innerHTML = ''; // Clear previous piece or indicator
+                    square.classList.remove('selected');
+                    const r = parseInt(square.dataset.r);
+                    const c = parseInt(square.dataset.c);
+                    const piece = board[r][c];
+
+                    if (piece) {
+                        const pieceEl = document.createElement('span');
+                        pieceEl.classList.add('piece', piece.player);
+                        pieceEl.textContent = Object.values(PIECE_TYPES).find(pt => pt.name === piece.type).symbol;
+                        square.appendChild(pieceEl);
+                    }
+                });
+                highlightValidMoves();
+                // Re-apply selected class if a piece is selected
+                if (selectedPiece) {
+                    const squareEl = getSquareElement(selectedPiece.r, selectedPiece.c);
+                    if (squareEl) squareEl.classList.add('selected');
+                }
+            }
+            
+            /**
+             * Updates all non-board UI elements (turn indicator, scores, buttons).
+             */
+            function updateUI() {
+                const player = PLAYERS[currentPlayerIndex];
+                currentPlayerBoxEl.textContent = player.name;
+                currentPlayerBoxEl.style.backgroundColor = player.color;
+                
+                scoreRedBlackEl.textContent = scores[1];
+                scoreYellowWhiteEl.textContent = scores[2];
+                
+                // The roll button is disabled after a roll, or if the game is over
+                rollButton.disabled = lastDiceRoll !== null || isGameOver;
+            }
+            
+            /**
+             * Adds a message to the top of the game log.
+             * @param {string} message - The message to log.
+             */
+            function logMessage(message) {
+                const p = document.createElement('p');
+                p.textContent = message;
+                gameLogEl.prepend(p);
+            }
+
+            // =========================================================================
+            // --- SECTION 6: CORE GAME LOGIC & EVENT HANDLING ---
+            // =========================================================================
+
+            /**
+             * Handles the dice roll event.
+             */
+            function handleDiceRoll() {
+                lastDiceRoll = Math.floor(Math.random() * 4) + 2; // Rolls 2, 3, 4, or 5
+                const movablePieceType = DICE_MAP[lastDiceRoll];
+                
+                let message = `Rolled a ${lastDiceRoll}! Move a ${movablePieceType}.`;
+                if (lastDiceRoll === 5) message += " or a Pawn.";
+                
+                diceResultEl.textContent = message;
+                logMessage(`${PLAYERS[currentPlayerIndex].name} rolled a ${lastDiceRoll}.`);
+                
+                // Important: Check if the player has any possible move with this roll.
+                if (!playerHasMovablePiece(movablePieceType)) {
+                    diceResultEl.innerHTML = `${message}<br>No moves possible. Turn skipped.`;
+                    logMessage(`${PLAYERS[currentPlayerIndex].name} has no moves and skips their turn.`);
+                    // Automatically proceed to the next turn after a delay
+                    setTimeout(nextTurn, 2000);
+                }
+                
+                updateUI();
+            }
+
+            /**
+             * Handles clicks on any square on the board.
+             * @param {Event} event - The click event.
+             */
+            function handleSquareClick(event) {
+                if (isGameOver) return; // Don't allow moves if game is over
+                const square = event.target.closest('.square');
+                if (!square) return;
+
+                const r = parseInt(square.dataset.r);
+                const c = parseInt(square.dataset.c);
+                const piece = board[r][c];
+
+                // Case 1: A piece is already selected, try to move it.
+                if (selectedPiece) {
+                    const isMoveValid = validMoves.some(move => move.r === r && move.c === c);
+                    if (isMoveValid) {
+                        movePiece(selectedPiece.r, selectedPiece.c, r, c);
+                    } else {
+                        // If the click is not a valid move, deselect the piece.
+                        clearSelection();
+                        renderBoard();
+                    }
+                } 
+                // Case 2: No piece is selected, try to select one.
+                else if (piece && piece.player === PLAYERS[currentPlayerIndex].id && lastDiceRoll) {
+                    const movableType = DICE_MAP[lastDiceRoll];
+                    // Check if the selected piece matches the dice roll
+                    if (piece.type === movableType || (lastDiceRoll === 5 && piece.type === PIECE_TYPES.PAWN.name)) {
+                        selectPiece(r, c);
+                    }
+                }
+            }
+
+            /**
+             * Selects a piece and calculates its valid moves.
+             */
+            function selectPiece(r, c) {
+                clearSelection();
+                selectedPiece = { r, c, piece: board[r][c] };
+                validMoves = calculateValidMoves(r, c, selectedPiece.piece);
+                renderBoard(); // Re-render to show selection and valid move highlights
+            }
+
+            /**
+             * Moves a piece from one square to another, handles captures, and ends the turn.
+             */
+            function movePiece(fromR, fromC, toR, toC) {
+                const movingPiece = board[fromR][fromC];
+                const targetPiece = board[toR][toC];
+                let capturedPieceName = "an empty square";
+
+                // If there's a piece on the target square, it's a capture
+                if (targetPiece) {
+                    const movingPlayer = PLAYERS.find(p => p.id === movingPiece.player);
+                    scores[movingPlayer.alliance] += PIECE_VALUES[targetPiece.type];
+                    capturedPieceName = `a ${targetPiece.player} ${targetPiece.type}`;
+                }
+                
+                // Update the board model
+                board[toR][toC] = movingPiece;
+                board[fromR][fromC] = null;
+                
+                logMessage(`${movingPiece.player} ${movingPiece.type} moves, capturing ${capturedPieceName}.`);
+
+                checkForPawnPromotion(toR, toC, movingPiece);
+                
+                if (checkForGameOver()) {
+                    endGame();
+                } else {
+                    nextTurn();
+                }
+
+                clearSelection();
+                renderBoard();
+            }
+
+            /**
+             * Advances to the next player's turn and resets turn-specific state.
+             */
+            function nextTurn() {
+                currentPlayerIndex = (currentPlayerIndex + 1) % PLAYERS.length;
+                lastDiceRoll = null;
+                diceResultEl.textContent = 'Roll the dice to start your turn.';
+                updateUI();
+            }
+            
+            /**
+             * Ends the game and displays the winner.
+             */
+            function endGame() {
+                isGameOver = true;
+                const winnerAlliance = scores[1] > scores[2] ? 1 : 2;
+                winnerMessageEl.textContent = `Team ${winnerAlliance} Wins!`;
+                gameOverModal.style.display = 'flex';
+                logMessage(`Game Over! Team ${winnerAlliance} is victorious.`);
+                updateUI();
+            }
+
+
+            // =========================================================================
+            // --- SECTION 7: RULES & MOVE CALCULATIONS ---
+            // =========================================================================
+
+            
+
+            // =========================================================================
+            // --- SECTION 8: HELPER & UTILITY FUNCTIONS ---
+            // =========================================================================
+
+            function clearSelection() {
+                selectedPiece = null;
+                validMoves = [];
+            }
+            
+            function highlightValidMoves() {
+                document.querySelectorAll('.valid-move-indicator').forEach(el => el.remove());
+                validMoves.forEach(move => {
+                    const squareEl = getSquareElement(move.r, move.c);
+                    if (squareEl) {
+                        const indicator = document.createElement('div');
+                        indicator.className = 'valid-move-indicator';
+                        squareEl.appendChild(indicator);
+                    }
+                });
+            }
+
+            function isValidSquare(r, c) {
+                return r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE;
+            }
+
+            function isAlly(player1Id, player2Id) {
+                if(!player1Id || !player2Id) return false;
+                const p1 = PLAYERS.find(p => p.id === player1Id);
+                const p2 = PLAYERS.find(p => p.id === player2Id);
+                return p1.alliance === p2.alliance;
+            }
+
+            function isValidAndEmptyOrEnemy(r, c, player) {
+                if (!isValidSquare(r, c)) return false;
+                const targetPiece = board[r][c];
+                return !targetPiece || !isAlly(player, targetPiece.player);
+            }
+
+            function getSquareElement(r, c) {
+                return document.querySelector(`.square[data-r='${r}'][data-c='${c}']`);
+            }
+
+            // =========================================================================
+            // --- SECTION 9: ATTACH EVENT LISTENERS & START GAME ---
+            // =========================================================================
+
+            rollButton.addEventListener('click', handleDiceRoll);
+            boardEl.addEventListener('click', handleSquareClick);
+            newGameButton.addEventListener('click', resetGame);
+            
+            // Start the game for the first time
+            init();
+        });
+    </script>
+
+</body>
+</html>
