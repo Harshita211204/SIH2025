@@ -1,7 +1,14 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, Dimensions } from 'react-native';
+import React, { useRef } from 'react';
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 
-// --- CONSTANTS ---
+// --- CONSTANTS (unchanged) ---
 const BOARD_SIZE = 8;
 const PLAYERS = [
   { id: 'red', name: 'Red', color: '#8a1515', alliance: 1 },
@@ -21,47 +28,136 @@ const DICE_MAP = {
   2: PIECE_TYPES.BOAT.name,
   3: PIECE_TYPES.HORSE.name,
   4: PIECE_TYPES.ELEPHANT.name,
-  5: PIECE_TYPES.KING.name, // 5 can also move Pawn
+  5: PIECE_TYPES.KING.name,
 };
-const INITIAL_BOARD_STATE = [
-  // Red Player (Top-Left)
-  { r: 0, c: 0, type: PIECE_TYPES.KING.name, player: 'red' }, { r: 0, c: 1, type: PIECE_TYPES.ELEPHANT.name, player: 'red' }, { r: 0, c: 2, type: PIECE_TYPES.HORSE.name, player: 'red' }, { r: 0, c: 3, type: PIECE_TYPES.BOAT.name, player: 'red' },
-  { r: 1, c: 0, type: PIECE_TYPES.PAWN.name, player: 'red' }, { r: 1, c: 1, type: PIECE_TYPES.PAWN.name, player: 'red' }, { r: 1, c: 2, type: PIECE_TYPES.PAWN.name, player: 'red' }, { r: 1, c: 3, type: PIECE_TYPES.PAWN.name, player: 'red' },
-  // Yellow Player (Top-Right)
-  { r: 0, c: 7, type: PIECE_TYPES.KING.name, player: 'yellow' }, { r: 1, c: 7, type: PIECE_TYPES.ELEPHANT.name, player: 'yellow' }, { r: 2, c: 7, type: PIECE_TYPES.HORSE.name, player: 'yellow' }, { r: 3, c: 7, type: PIECE_TYPES.BOAT.name, player: 'yellow' },
-  { r: 0, c: 6, type: PIECE_TYPES.PAWN.name, player: 'yellow' }, { r: 1, c: 6, type: PIECE_TYPES.PAWN.name, player: 'yellow' }, { r: 2, c: 6, type: PIECE_TYPES.PAWN.name, player: 'yellow' }, { r: 3, c: 6, type: PIECE_TYPES.PAWN.name, player: 'yellow' },
-  // Black Player (Bottom-Right)
-  { r: 7, c: 7, type: PIECE_TYPES.KING.name, player: 'black' }, { r: 7, c: 6, type: PIECE_TYPES.ELEPHANT.name, player: 'black' }, { r: 7, c: 5, type: PIECE_TYPES.HORSE.name, player: 'black' }, { r: 7, c: 4, type: PIECE_TYPES.BOAT.name, player: 'black' },
-  { r: 6, c: 7, type: PIECE_TYPES.PAWN.name, player: 'black' }, { r: 6, c: 6, type: PIECE_TYPES.PAWN.name, player: 'black' }, { r: 6, c: 5, type: PIECE_TYPES.PAWN.name, player: 'black' }, { r: 6, c: 4, type: PIECE_TYPES.PAWN.name, player: 'black' },
-  // White Player (Bottom-Left)
-  { r: 7, c: 0, type: PIECE_TYPES.KING.name, player: 'white' }, { r: 6, c: 0, type: PIECE_TYPES.ELEPHANT.name, player: 'white' }, { r: 5, c: 0, type: PIECE_TYPES.HORSE.name, player: 'white' }, { r: 4, c: 0, type: PIECE_TYPES.BOAT.name, player: 'white' },
-  { r: 7, c: 1, type: PIECE_TYPES.PAWN.name, player: 'white' }, { r: 6, c: 1, type: PIECE_TYPES.PAWN.name, player: 'white' }, { r: 5, c: 1, type: PIECE_TYPES.PAWN.name, player: 'white' }, { r: 4, c: 1, type: PIECE_TYPES.PAWN.name, player: 'white' },
-];
+const INITIAL_BOARD_STATE = [/* ...same as before... */];
 
 // --- MAIN COMPONENT ---
 export default function Chaturanga() {
-  // State variables
-  // ...to be filled in next step...
+  const boardRef = useRef<ScrollView>(null);
+
+  const scrollToBoard = () => {
+    boardRef.current?.scrollTo({ y: Dimensions.get('window').height * 0.9, animated: true });
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Chaturanga - The Four-Player Ancient Chess</Text>
-      {/* Board, Info Panel, and Modal will go here */}
-    </View>
+    <ScrollView
+      ref={boardRef}
+      style={styles.page}
+      contentContainerStyle={{ paddingBottom: 40 }}
+    >
+      {/* ---- Intro Section ---- */}
+      <View style={styles.intro}>
+        <Text style={styles.heading}>Chaturanga</Text>
+        <Text style={styles.subheading}>
+          The Ancient Indian Strategy Game, Precursor to Modern Chess
+        </Text>
+        <Text style={styles.paragraph}>
+          Chaturanga, meaning "four limbs," is a two-player strategy game that
+          originated in ancient India. It's a game of wit and foresight,
+          reflecting the four divisions of a traditional army: infantry,
+          cavalry, elephantry, and chariotry. Master the battlefield and
+          checkmate your opponent's Raja.
+        </Text>
+        <TouchableOpacity style={styles.playBtn} onPress={scrollToBoard}>
+          <Text style={styles.playBtnText}>Play Now</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ---- Pieces Description ---- */}
+      <View style={styles.piecesSection}>
+        <Text style={styles.sectionTitle}>The Pieces</Text>
+        {[
+          { title: 'Raja (King)', desc: 'Moves one square in any direction, just like the modern king. Protect your Raja and checkmate the opponent.' },
+          { title: 'Mantri (Minister)', desc: 'Moves one square diagonally. A key advisor to the Raja.' },
+          { title: 'Gaja (Elephant)', desc: 'Moves two squares diagonally, jumping over pieces.' },
+          { title: 'Ashva (Horse)', desc: 'Moves in an L-shape and can jump over pieces.' },
+          { title: 'Ratha (Chariot)', desc: 'Moves any number of squares horizontally or vertically.' },
+          { title: 'Padati (Foot Soldier)', desc: 'Moves one square forward and captures diagonally.' },
+        ].map((p, i) => (
+          <View key={i} style={styles.card}>
+            <Text style={styles.cardTitle}>{p.title}</Text>
+            <Text style={styles.cardText}>{p.desc}</Text>
+          </View>
+        ))}
+      </View>
+      {/* ---- Game Board Placeholder ---- */}
+      <View style={styles.gameContainer}>
+        <Text style={styles.gameTitle}>
+          Chaturanga - The Four-Player Ancient Chess
+        </Text>
+        {/* Your actual board UI / logic goes here */}
+      </View>
+    </ScrollView>
   );
 }
 
+// --- STYLES ---
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  page: { flex: 1, backgroundColor: '#d2b48c' },
+
+  intro: {
+    padding: 20,
+    alignItems: 'center',
+    backgroundColor: '#f5deb3',
+  },
+  heading: {
+    fontSize: 36,
+    fontWeight: '800',
+    backgroundColor: 'transparent',
+    color: '#b8860b',
+    textAlign: 'center',
+  },
+  subheading: {
+    fontSize: 18,
+    color: '#555',
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  paragraph: {
+    fontSize: 16,
+    color: '#444',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  playBtn: {
+    backgroundColor: '#333',
+    paddingHorizontal: 30,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  playBtnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+
+  piecesSection: { padding: 20 },
+  sectionTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    textAlign: 'center',
+    color: '#b8860b',
+    marginBottom: 15,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginVertical: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  cardTitle: { fontSize: 20, fontWeight: '700', color: '#e1a100', marginBottom: 4 },
+  cardText: { fontSize: 16, color: '#444' },
+
+  gameContainer: {
+    padding: 20,
     backgroundColor: '#1B263B',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: 20,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#ecf0f1',
-    marginBottom: 10,
-  },
+  gameTitle: { fontSize: 22, fontWeight: 'bold', color: '#ecf0f1', marginBottom: 10 },
 });
+

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaturanga - The Original Chess</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #333333;
+            /* New inline background styles for the wooden chessboard */
+            background-image:
+                linear-gradient(45deg, rgba(139, 69, 19, 0.8) 25%, transparent 25%),
+                linear-gradient(-45deg, rgba(139, 69, 19, 0.8) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, rgba(139, 69, 19, 0.8) 75%),
+                linear-gradient(-45deg, transparent 75%, rgba(139, 69, 19, 0.8) 75%);
+            background-size: 60px 60px;
+            background-color: #d2b48c;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #b8860b, #daa520);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .border-gradient {
+            border: 2px solid;
+            border-image: linear-gradient(45deg, #b8860b, #daa520) 1;
+            box-shadow: 0 4px 14px rgba(218, 165, 32, 0.2);
+        }
+
+        .scroll-to-top {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            display: none;
+            cursor: pointer;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+                <header class="w-full max-w-5xl text-center py-16 px-6">
+            <h1 class="text-4xl md:text-6xl font-extrabold leading-tight tracking-tight mb-4 gradient-text">
+                Chaturanga
+            </h1>
+            <p class="text-lg md:text-2xl font-semibold text-gray-600 mb-8">
+                The Ancient Indian Strategy Game, Precursor to Modern Chess
+            </p>
+            <p class="max-w-3xl mx-auto text-base md:text-lg text-gray-600 leading-relaxed mb-8">
+                Chaturanga, meaning "four limbs," is a two-player strategy game that originated in ancient India. It's a game of wit and foresight, reflecting the four divisions of a traditional army: infantry, cavalry, elephantry, and chariotry. Master the battlefield and checkmate your opponent's Raja.
+            </p>
+            <a href="#pieces-section" id="play-now-btn" class="inline-block px-8 py-4 text-white text-lg font-bold rounded-full transition-transform transform hover:scale-105 bg-gray-800 hover:bg-gray-900">
+                Play Now
+            </a>
+        </header>
+
+                <section id="pieces-section" class="w-full max-w-5xl py-12 px-6">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-10 gradient-text">The Pieces</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                                <div class="bg-white p-6 rounded-2xl shadow-lg border-gradient transition-transform transform hover:scale-105">
+                    <h3 class="text-2xl font-bold text-yellow-600 mb-2">Raja (King)</h3>
+                    <p class="text-gray-600">Moves one square in any direction, just like the modern king. The objective is to protect your Raja and checkmate the opponent's.</p>
+                </div>
+
+                                <div class="bg-white p-6 rounded-2xl shadow-lg border-gradient transition-transform transform hover:scale-105">
+                    <h3 class="text-2xl font-bold text-yellow-600 mb-2">Mantri (Minister)</h3>
+                    <p class="text-gray-600">The precursor to the queen, this piece moves one square diagonally in any direction. Though limited, it is a crucial advisor to the Raja.</p>
+                </div>
+
+                                <div class="bg-white p-6 rounded-2xl shadow-lg border-gradient transition-transform transform hover:scale-105">
+                    <h3 class="text-2xl font-bold text-yellow-600 mb-2">Gaja (Elephant)</h3>
+                    <p class="text-gray-600">The equivalent of the bishop, the Gaja moves two squares diagonally, jumping over any piece in its path. It symbolizes the mighty war elephants.</p>
+                </div>
+
+                                <div class="bg-white p-6 rounded-2xl shadow-lg border-gradient transition-transform transform hover:scale-105">
+                    <h3 class="text-2xl font-bold text-yellow-600 mb-2">Ashva (Horse)</h3>
+                    <p class="text-gray-600">Moves in an L-shape, exactly like the modern knight, and can jump over other pieces. It represents the swift and agile cavalry.</p>
+                </div>
+
+                                <div class="bg-white p-6 rounded-2xl shadow-lg border-gradient transition-transform transform hover:scale-105">
+                    <h3 class="text-2xl font-bold text-yellow-600 mb-2">Ratha (Chariot)</h3>
+                    <p class="text-gray-600">Functions just like a modern rook, moving any number of squares horizontally or vertically. It symbolizes the powerful war chariots.</p>
+                </div>
+
+                                <div class="bg-white p-6 rounded-2xl shadow-lg border-gradient transition-transform transform hover:scale-105">
+                    <h3 class="text-2xl font-bold text-yellow-600 mb-2">Padati (Foot Soldier)</h3>
+                    <p class="text-gray-600">The pawns of Chaturanga. They move one square forward and capture diagonally, but unlike modern chess, they cannot move two squares on their first turn.</p>
+                </div>
+            </div>
+        </section>
+
+                <button id="scrollToTopBtn" class="scroll-to-top p-3 bg-gray-800 rounded-full shadow-lg border-gradient">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+        </button>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const playNowBtn = document.getElementById('play-now-btn');
+            const piecesSection = document.getElementById('pieces-section');
+            const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+
+            playNowBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                piecesSection.scrollIntoView({ behavior: 'smooth' });
+            });
+
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    scrollToTopBtn.style.display = 'block';
+                } else {
+                    scrollToTopBtn.style.display = 'none';
+                }
+            });
+
+            scrollToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
